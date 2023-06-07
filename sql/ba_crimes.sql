@@ -3,12 +3,11 @@ DROP TABLE IF EXISTS crimes;
 CREATE TABLE crimes(
     id serial primary key,
     coordinates geometry,
-    date_key integer references date(date_key),
-    time_slot numeric
+    date_key integer references datetime(date_key)
 );
 
 DROP TABLE IF EXISTS aux_crimes;
-CREATE TABLE aux_crimes(
+CREATE TEMPORARY TABLE aux_crimes(
     id numeric,
     fecha date,
     franja_horaria text,
@@ -27,12 +26,13 @@ COPY aux_crimes FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA
 COPY aux_crimes FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA-OLAP/data/crimes/delitos_2018.csv' DELIMITER ',' NULL AS '' CSV HEADER;
 COPY aux_crimes FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA-OLAP/data/crimes/delitos_2019.csv' DELIMITER ',' NULL AS '' CSV HEADER;
 
+DELETE FROM aux_crimes
+WHERE NOT franja_horaria ~ '^[0-9]+$';
 
-INSERT INTO crimes(coordinates, date_key, time_slot)
-SELECT ST_POINT(c.long, c.lat), d.date_key,
-    CASE WHEN c.franja_horaria ~ '^\d+(\.\d+)?$' THEN CAST(c.franja_horaria AS numeric)
-    END
+INSERT INTO crimes(coordinates, date_key)
+SELECT ST_POINT(c.long, c.lat), d.date_key
 FROM aux_crimes c
-LEFT JOIN date d ON c.fecha = d.date AND c.lat IS NOT NULL AND c.long IS NOT NULL;
+LEFT JOIN datetime d ON c.fecha = d.date AND c.franja_horaria::numeric = d.time_range AND c.lat IS NOT NULL AND c.long IS NOT NULL;
+
 
 DROP TABLE aux_crimes;
