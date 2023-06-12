@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS temp_subway_stations (
 
 CREATE TABLE IF NOT EXISTS subway_stations (
     id serial primary key,
-    coordinates geometry(POINT,0),
+    coordinates geometry,
     station text,
     line text
 );
