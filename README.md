@@ -4,7 +4,7 @@
 The data used in this project is sourced from the Buenos Aires Open Data portal (https://data.buenosaires.gob.ar/dataset/), which provides publicly available datasets related to various aspects of the city.
 
 ## Scripts
-To ensure the proper creation of dependencies and the correct functioning of the system, it is essential to execute the following scripts in the following order:
+To ensure the proper creation of dependencies and the correct functioning of the data warehouse, it is essential to execute the scripts in the following order:
 
 ### ba_geom.sql
 The `ba_geom.sql` script generates tables that contain geographical information about Buenos Aires. These tables include data on subway stations, police stations, communes, and neighborhoods within the Ciudad Autónoma de Buenos Aires. This geographical information enhances the analysis and provides context for understanding the spatial aspects of criminality data.
