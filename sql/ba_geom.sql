@@ -45,7 +45,7 @@ ALTER TABLE neighborhoods
     DROP COLUMN object;
 
 -- SUBWAY STATIONS ------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS temp_subway_stations
+CREATE TEMPORARY TABLE IF NOT EXISTS temp_subway_stations
 (
     id      numeric primary key,
     long    numeric,
@@ -74,7 +74,7 @@ FROM temp_subway_stations t
 
 
 -- POLICE STATIONS ------------------------------------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS temp_police_stations
+CREATE TEMPORARY TABLE IF NOT EXISTS temp_police_stations
 (
     long                    numeric,
     lat                     numeric,

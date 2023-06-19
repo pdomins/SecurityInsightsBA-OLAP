@@ -1,6 +1,4 @@
 DROP TABLE IF EXISTS datetime;
-DROP TABLE if exists date;
-
 CREATE TABLE datetime
 (
     date_key    serial primary key,
