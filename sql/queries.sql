@@ -162,3 +162,31 @@ WHERE cumul_crimes <= (SELECT MIN(cumul_crimes)
                      FROM acc_crimes_per_line s2
                      WHERE crimes_percent >= 0.5 AND s1.year = s2.year)
 ORDER BY year, cumul_crimes;
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- neighborhood criminality
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 1
+WITH difference_per_neighborhood AS
+    (SELECT c1.neighborhood, c1.year, c1.crimes_count,c1.crimes_count - c2.crimes_count as difference
+FROM crime_statistics c1 LEFT JOIN crime_statistics c2 ON c1.year - 1 = c2.year  AND c1.neighborhood = c2.neighborhood
+WHERE c1.year IS NOT NULL AND c1.neighborhood IS NOT NULL)
+SELECT year, AVG(difference)
+FROM difference_per_neighborhood
+GROUP BY year
+ORDER BY year;
+
+-- 2
+WITH monthly_statistics AS (
+    SELECT d.month, COUNT(*) AS crimes_amount
+    FROM crimes c
+    JOIN datetime d ON c.date_key = d.date_key
+    GROUP BY d.month
+),
+average_crimes_amount AS (
+    SELECT AVG(crimes_amount) AS avg_crimes_amount
+    FROM monthly_statistics
+)
+SELECT ms.month, ms.crimes_amount, ac.avg_crimes_amount - ms.crimes_amount AS difference
+FROM monthly_statistics ms
+CROSS JOIN average_crimes_amount ac;
