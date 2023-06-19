@@ -230,7 +230,7 @@ GROUP BY neighborhood
 ORDER BY distance;
 --2
 WITH police_station_buffer AS (
-  SELECT name, neighborhood, ST_Buffer(coordinates, 0.00500) AS buffered_geometry, ST_area(ST_Buffer(coordinates, 0.00100))*10000*1000000 AS area_square_meters
+  SELECT name, neighborhood, ST_Buffer(coordinates, 0.00500) AS buffered_geometry, ST_area(ST_Buffer(coordinates, 0.00500))*10000*1000000 AS area_square_meters
     FROM police_stations
 ), crimes_per_station_and_year AS (
 SELECT p.name, d.year, neighborhood, COUNT(c.coordinates) AS crimes_count, COUNT(c.coordinates)/area_square_meters AS crimes_per_square_meter
@@ -246,3 +246,28 @@ SELECT name, neighborhood, AVG(difference) as average
 FROM crimes_comparison
 GROUP BY name, neighborhood
 ORDER BY average DESC;
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- safe paths
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+WITH paths_buffer AS (
+    SELECT path_id, neighborhood,ST_Union(ST_Buffer((SELECT coordinates FROM schools WHERE paths.school_id = schools.school_id), 0.0010)) AS buffered_geometry
+    FROM paths, schools
+    WHERE paths.school_id = schools.school_id
+    GROUP BY path_id, neighborhood),
+crimes_in_buffer AS(
+    SELECT p.path_id, year, neighborhood, COUNT(c.coordinates) as crimes_amount, COUNT(c.coordinates)/(ST_Area(buffered_geometry)*10000*1000000) AS crimes_per_square_meter
+    FROM paths_buffer p, crimes c, datetime t
+    WHERE ST_Within(c.coordinates, p.buffered_geometry) AND c.date_key = t.date_key
+    GROUP BY p.path_id, p.buffered_geometry, year, neighborhood
+    ),
+crimes_comparison AS(
+    SELECT path_id, c.neighborhood, c.year, cs.crimes_per_square_meter - c.crimes_per_square_meter AS difference
+    FROM crimes_in_buffer c, crime_statistics cs
+    WHERE c.neighborhood = cs.neighborhood AND c.year = cs.year
+), paths_average AS (
+SELECT path_id, neighborhood, AVG(difference) as average
+FROM crimes_comparison
+GROUP BY path_id, neighborhood
+ORDER BY average DESC)
+SELECT DISTINCT (SELECT COUNT(*) FROM paths_average WHERE average >= 0) AS safe_paths, (SELECT COUNT(*) FROM paths_average WHERE average < 0 AND average > -0.001) AS unsafe_paths, (SELECT COUNT(*) FROM paths_average WHERE average < -0.001) AS dangerous_paths  FROM paths_average;
