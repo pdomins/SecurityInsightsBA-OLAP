@@ -33,7 +33,7 @@ CREATE TEMPORARY TABLE aux_paths
     long    numeric
 );
 
-COPY aux_paths FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA-OLAP/data/paths/senderos_escolares_2023.csv' DELIMITER ',' NULL AS '' CSV HEADER;
+COPY aux_paths FROM '<set_path>/SecurityInsightsBA-OLAP/data/paths/senderos_escolares_2023.csv' DELIMITER ',' NULL AS '' CSV HEADER;
 
 INSERT INTO schools(cue, name, coordinates, neighborhood)
 SELECT cue, name, ST_POINT(long, lat), barrio

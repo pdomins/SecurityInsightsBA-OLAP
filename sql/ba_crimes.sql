@@ -61,12 +61,12 @@ CREATE TEMPORARY TABLE aux_crimes2
 );
 
 -- CRIMES 16-17-18-19 ------------------------------------------------------------------------------------------------------------
-COPY aux_crimes FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA-OLAP/data/crimes/delitos_2016.csv' DELIMITER ',' NULL AS '' CSV HEADER;
-COPY aux_crimes FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA-OLAP/data/crimes/delitos_2017.csv' DELIMITER ',' NULL AS '' CSV HEADER;
-COPY aux_crimes FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA-OLAP/data/crimes/delitos_2018.csv' DELIMITER ',' NULL AS '' CSV HEADER;
-COPY aux_crimes FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA-OLAP/data/crimes/delitos_2019.csv' DELIMITER ',' NULL AS '' CSV HEADER;
-COPY aux_crimes2 FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA-OLAP/data/crimes/delitos_2020.csv' DELIMITER ',' NULL AS '' CSV HEADER;
-COPY aux_crimes2 FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA-OLAP/data/crimes/delitos_2021.csv' DELIMITER ',' NULL AS '' CSV HEADER;
+COPY aux_crimes FROM '<set_path>/SecurityInsightsBA-OLAP/data/crimes/delitos_2016.csv' DELIMITER ',' NULL AS '' CSV HEADER;
+COPY aux_crimes FROM '<set_path>/SecurityInsightsBA-OLAP/data/crimes/delitos_2017.csv' DELIMITER ',' NULL AS '' CSV HEADER;
+COPY aux_crimes FROM '<set_path>/SecurityInsightsBA-OLAP/data/crimes/delitos_2018.csv' DELIMITER ',' NULL AS '' CSV HEADER;
+COPY aux_crimes FROM '<set_path>/SecurityInsightsBA-OLAP/data/crimes/delitos_2019.csv' DELIMITER ',' NULL AS '' CSV HEADER;
+COPY aux_crimes2 FROM '<set_path>/SecurityInsightsBA-OLAP/data/crimes/delitos_2020.csv' DELIMITER ',' NULL AS '' CSV HEADER;
+COPY aux_crimes2 FROM '<set_path>/SecurityInsightsBA-OLAP/data/crimes/delitos_2021.csv' DELIMITER ',' NULL AS '' CSV HEADER;
 
 DELETE
 FROM aux_crimes

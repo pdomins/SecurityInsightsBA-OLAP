@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS communes
 );
 
 COPY communes
-    FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA-OLAP/data/geo/comunas.csv'
+    FROM '<set_path>/SecurityInsightsBA-OLAP/data/geo/comunas.csv'
     DELIMITER ';'
     NULL AS ''
     CSV HEADER;
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS neighborhoods
     object       text
 );
 COPY neighborhoods
-    FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA-OLAP/data/geo/barrios.csv'
+    FROM '<set_path>/SecurityInsightsBA-OLAP/data/geo/barrios.csv'
     DELIMITER ';'
     NULL AS ''
     CSV HEADER;
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS subway_stations
 );
 
 COPY temp_subway_stations (long, lat, id, station, line)
-    FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA-OLAP/data/geo/estaciones-de-subte.csv'
+    FROM '<set_path>/SecurityInsightsBA-OLAP/data/geo/estaciones-de-subte.csv'
     DELIMITER ','
     CSV HEADER;
 
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS police_stations
 );
 
 COPY temp_police_stations
-    FROM '/Users/paudomingues/Documents/ITBA/OLAP/SecurityInsightsBA-OLAP/data/geo/comisarias-ciudad.csv'
+    FROM '<set_path>/SecurityInsightsBA-OLAP/data/geo/comisarias-ciudad.csv'
     DELIMITER ','
     NULL AS ''
     CSV HEADER;
