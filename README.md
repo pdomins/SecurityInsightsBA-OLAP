@@ -15,7 +15,7 @@ The datetime.sql script generates a table that encompasses all dates and time ra
 ### ba_crimes.sql
 The `ba_crimes.sql` script generates a table that includes detailed information about crimes committed in the Ciudad Autónoma de Buenos Aires from 2016 to 2021. The table includes fields such as crime type, sub-type, date, approximate time slot, coordinates, and other relevant information. This data provides the foundation for performing analysis on crime patterns, trends, and correlations with other factors.
 
-###ba_paths.sql
+### ba_paths.sql
 The `ba_paths.sql` script generates a table that contains the 'safe paths' from schools to nearby locations with high pedestrian traffic. This information can be utilized to analyze and identify safer routes for students and pedestrians. Additionally, the script creates a table specifically for schools, which includes relevant data such as school names, CUE, and coordinates.
 
 ## Note

@@ -11,7 +11,6 @@ CREATE TABLE crime_statistics (
     crimes_per_square_km DOUBLE PRECISION,
     crimes_per_square_meter DOUBLE PRECISION
 );
-
 WITH crimes_per_unit AS (
     SELECT n.neighborhood, d.year, COUNT(c.id) AS average_crimes, COUNT(c.id)/(n.area/1000000) AS crimes_per_square_km, COUNT(c.id)/n.area AS crimes_per_square_meter
     FROM neighborhoods n
@@ -25,5 +24,9 @@ UNION
 SELECT neighborhood, NULL, AVG(average_crimes), AVG(crimes_per_square_km), AVG(crimes_per_square_meter)
 FROM crimes_per_unit
 GROUP BY neighborhood
+UNION
+SELECT NULL, year, AVG(average_crimes), AVG(crimes_per_square_km), AVG(crimes_per_square_meter)
+FROM crimes_per_unit
+GROUP BY year
 ORDER BY neighborhood, year;
 
