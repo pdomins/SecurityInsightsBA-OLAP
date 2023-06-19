@@ -32,6 +32,9 @@ FROM crimes_per_unit
 GROUP BY year
 ORDER BY neighborhood, year;
 
+SELECT *, area/1000000, ST_AREA(multipolygon)*10000*1000000
+FROM neighborhoods;
+
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- historical trends and all-time highs
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -63,3 +66,99 @@ crimes_with_types AS (
 SELECT type, COUNT(*) as crimes_amount
 FROM crimes_with_types
 GROUP BY type;
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- impact of subway stations on criminality
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- 1
+WITH subway_buffer AS (
+  SELECT id, station, line, neighborhood, ST_Buffer(coordinates, 0.00100) AS buffered_geometry, ST_area(ST_Buffer(coordinates, 0.00100))*10000*1000000 AS area_square_meters
+    FROM subway_stations
+)
+SELECT station, d.year, line, neighborhood, COUNT(c.coordinates) AS crimes_count, COUNT(c.coordinates)/ area_square_meters AS crimes_per_square_meter
+FROM crimes c, subway_buffer s, datetime d
+WHERE ST_Within(c.coordinates, s.buffered_geometry) AND c.date_key = d.date_key
+GROUP BY station, area_square_meters, d.year, neighborhood, line
+ORDER BY crimes_per_square_meter ;
+
+-- 2.a
+WITH subway_buffer AS (
+  SELECT id, station, line, neighborhood, ST_Buffer(coordinates, 0.00100) AS buffered_geometry, ST_area(ST_Buffer(coordinates, 0.00100))*10000*1000000 AS area_square_meters
+    FROM subway_stations
+), crimes_per_station_and_year AS (
+SELECT station, d.year, line, neighborhood, COUNT(c.coordinates) AS crimes_count, COUNT(c.coordinates)/ area_square_meters AS crimes_per_square_meter
+FROM crimes c, subway_buffer s, datetime d
+WHERE ST_Within(c.coordinates, s.buffered_geometry) AND c.date_key = d.date_key
+GROUP BY station, area_square_meters, d.year, neighborhood, line)
+SELECT station, c.year, line, cs.crimes_per_square_meter - c.crimes_per_square_meter AS difference
+FROM crimes_per_station_and_year c, crime_statistics cs
+WHERE c.neighborhood = c.neighborhood AND c.year = cs.year
+ORDER BY difference DESC;
+
+-- 2.b
+WITH subway_buffer AS (
+  SELECT id, station, line, neighborhood, ST_Buffer(coordinates, 0.00100) AS buffered_geometry, ST_area(ST_Buffer(coordinates, 0.00100))*10000*1000000 AS area_square_meters
+    FROM subway_stations
+), crimes_per_station_and_year AS (
+SELECT station, d.year, line, neighborhood, COUNT(c.coordinates) AS crimes_count, COUNT(c.coordinates)/ area_square_meters AS crimes_per_square_meter
+FROM crimes c, subway_buffer s, datetime d
+WHERE ST_Within(c.coordinates, s.buffered_geometry) AND c.date_key = d.date_key
+GROUP BY station, area_square_meters, d.year, neighborhood, line),
+crimes_comparison AS(
+    SELECT station, c.year, line, cs.crimes_per_square_meter - c.crimes_per_square_meter AS difference
+        FROM crimes_per_station_and_year c, crime_statistics cs
+        WHERE c.neighborhood = c.neighborhood AND c.year = cs.year
+)
+SELECT line, year, AVG(difference) as average
+FROM crimes_comparison
+GROUP BY line, year
+ORDER BY average DESC;
+
+-- 3
+-- subway stations that account for 50% of the recorded crimes
+WITH subway_buffer AS (
+  SELECT id, station, line, neighborhood, ST_Buffer(coordinates, 0.00100) AS buffered_geometry, ST_area(ST_Buffer(coordinates, 0.00100))*10000*1000000 AS area_square_meters
+    FROM subway_stations
+), crimes_per_station_and_year AS (
+    SELECT station, d.year, line, neighborhood, COUNT(c.coordinates) AS crimes_count, COUNT(c.coordinates)/ area_square_meters AS crimes_per_square_meter
+    FROM crimes c, subway_buffer s, datetime d
+    WHERE ST_Within(c.coordinates, s.buffered_geometry) AND c.date_key = d.date_key
+    GROUP BY station, area_square_meters, d.year, neighborhood, line),
+total_crimes_per_year AS (
+    SELECT line, year, SUM(crimes_count) AS total_crimes
+    FROM crimes_per_station_and_year
+    GROUP BY line, year),
+sum_per_station_and_year AS(
+    SELECT station, line, year, crimes_count, SUM(crimes_count) OVER (PARTITION BY year ORDER BY crimes_count DESC ROWS UNBOUNDED PRECEDING) AS cumul_crimes, SUM(crimes_count)OVER (PARTITION BY year ORDER BY crimes_count DESC ROWS UNBOUNDED PRECEDING)/(SELECT SUM(total_crimes) FROM total_crimes_per_year t WHERE t.year=c.year) AS crimes_percent
+    FROM crimes_per_station_and_year c)
+SELECT station, line, year, crimes_percent
+FROM sum_per_station_and_year s1
+WHERE cumul_crimes <= (SELECT MIN(cumul_crimes)
+                     FROM sum_per_station_and_year s2
+                     WHERE crimes_percent >= 0.5 AND s1.year = s2.year)
+ORDER BY year, cumul_crimes;
+
+-- 3
+-- subway lines that account for 50% of the recorded crimes
+WITH subway_buffer AS (
+  SELECT id, station, line, neighborhood, ST_Buffer(coordinates, 0.00100) AS buffered_geometry, ST_area(ST_Buffer(coordinates, 0.00100))*10000*1000000 AS area_square_meters
+    FROM subway_stations
+), crimes_per_station_and_year AS (
+    SELECT station, d.year, line, neighborhood, COUNT(c.coordinates) AS crimes_count, COUNT(c.coordinates)/ area_square_meters AS crimes_per_square_meter
+    FROM crimes c, subway_buffer s, datetime d
+    WHERE ST_Within(c.coordinates, s.buffered_geometry) AND c.date_key = d.date_key
+    GROUP BY station, area_square_meters, d.year, neighborhood, line),
+total_crimes_per_year AS (
+    SELECT line, year, SUM(crimes_count) AS total_crimes
+    FROM crimes_per_station_and_year
+    GROUP BY line, year),
+acc_crimes_per_line AS(
+    SELECT line, year, total_crimes, SUM(total_crimes) OVER(PARTITION BY year ORDER BY total_crimes DESC ROWS UNBOUNDED PRECEDING) AS cumul_crimes, SUM(total_crimes) OVER(PARTITION BY year ORDER BY total_crimes DESC ROWS UNBOUNDED PRECEDING)/(SELECT SUM(total_crimes) FROM total_crimes_per_year t WHERE t.year=c.year) AS crimes_percent
+    FROM total_crimes_per_year c
+)
+SELECT line, year, crimes_percent
+FROM acc_crimes_per_line s1
+WHERE cumul_crimes <= (SELECT MIN(cumul_crimes)
+                     FROM acc_crimes_per_line s2
+                     WHERE crimes_percent >= 0.5 AND s1.year = s2.year)
+ORDER BY year, cumul_crimes;
